@@ -1,25 +1,59 @@
-<project>
+<project name="TK1_P1">
 
 	<!-- This is only an idea for your script, you can build your own! -->
 	<description>
 		TK1 - Programmieraufgabe 1
 	</description>
 
-    <target name="clean">
-    	<!--  -->   
+    <property name="clientsrc" location="./src/client" />
+    <property name="serversrc" location="./src/server" />
+    <property name="implsrc" location="./src/impl" />
+    <property name="build" location="./bin/" />
+
+    <target name="init">
+	<!-- -->
+	<tstamp />
+	<mkdir dir="${build}"/>
     </target>
 
-    <target name="compile">
-    	<!--  -->    
+    <target name="clean" depends="compile">
+	<!-- Clean the ./bin folder  -->
+	<delete dir="${build}"/>
+    </target>
+
+    <target name="compile" depends="init">
+    	<!-- Build the client  -->
+	<javac destdir="${build}">
+	    <src path="${clientsrc}"/>
+	    <src path="${implsrc}"/>
+	</javac>
+
+	<!-- Build the server -->
+	<javac destdir="${build}">
+	    <src path="${serversrc}"/>
+	    <src path="${implsrc}"/>
+	</javac>
     </target>
 
     <target name="jar">
     	<!-- generate jars -->
     </target>
 
-    <target name="run">
+    <target name="run" depends="compile">
+	<exec executable="rmiregistry" spawn="true"/>
+	<java classname="ServerBuild.GameServer" classpath="${build}"
+		>
+	    <sysproperty key="java.rmi.server.codebase"
+		    value="file:${build}"/>
+	</java>
+
     	<parallel>
-    		<!-- start here one server and two clients -->
-    	</parallel>        
+	    <!-- start here one server and two clients -->
+	    <java classname="ClientBuild.GameClient">
+		<classpath>
+		    <pathelement path="${build}" />
+		</classpath>
+	    </java>
+    	</parallel>
     </target>
 </project>
