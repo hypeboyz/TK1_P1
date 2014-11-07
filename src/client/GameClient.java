@@ -1,15 +1,30 @@
 package ClientBuild;
 
 import javax.swing.*;
+import java.rmi.server.UnicastRemoteObject;
+import java.rmi.RemoteException;
 import java.rmi.registry.Registry;
 import java.rmi.registry.LocateRegistry;
+import impl.IGameClient;
 import impl.IGameServer;
 
-public class GameClient {
-	final static int width = 640, height = 640;
+public class GameClient implements IGameClient{
+	private final static int width = 640, height = 640;
+	private static IGameServer ServerStub;
 	private GameClient()
 	{
 		super();
+	}
+
+	// The following methods are client interfaces
+	public void receiveFlyHunted(String playerName, long newPoints) throws RemoteException
+	{
+		System.out.printf("Name: %s\nScore: %l\n", playerName, newPoints);
+	}
+	
+	public void receiveFlyPosition(int x, int y) throws RemoteException
+	{
+		System.out.printf("x: %d\ny: %d\n", x, y);
 	}
 
 	private static void createAndShowGUI()
@@ -30,8 +45,16 @@ public class GameClient {
 	public static void main(String[] args)
 	{
 		try {
+			IGameClient obj = new GameClient();
+			// Export the server interface object
+			IGameClient stub = (IGameClient) UnicastRemoteObject.exportObject(obj, 0);
+
 			Registry registry = LocateRegistry.getRegistry(null);
-			IGameServer stub = (IGameServer) registry.lookup("IGameServer");
+			registry.rebind("IGameClient", stub);
+			ServerStub = (IGameServer)registry.lookup("IGameServer");
+
+			ServerStub.login("Chen", stub);
+			ServerStub.logout("Chen");
 		} catch (Exception e) {
 			System.err.println("Client exception: " + e.toString());
 			e.printStackTrace();
@@ -41,6 +64,5 @@ public class GameClient {
 				createAndShowGUI();
 			}
 		});
-
 	}
 }

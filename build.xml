@@ -43,19 +43,18 @@
 	<exec dir="${build}" executable="rmiregistry" spawn="true"/>
 	<!-- 2 seconds delay for the rmiregistry to get ready -->
 	<sleep seconds="2" />
-	<java classname="ServerBuild.GameServer" classpath="${build}"
-		>
+	<java classname="ServerBuild.GameServer" classpath="${build}">
 	    <sysproperty key="java.rmi.server.codebase"
-		    value="file:${build}"/>
+		value="file:${build}"/>
 	</java>
 
 	<sleep seconds="2" />
     	<parallel>
 	    <!-- start here one server and two clients -->
-	    <java classname="ClientBuild.GameClient" fork="true">
-		<classpath>
-		    <pathelement path="${build}"/>
-		</classpath>
+	    <java classname="ClientBuild.GameClient" classpath="${build}" 
+		fork="true">
+		<sysproperty key="java.rmi.server.codebase"
+		    value="file:${build}"/>
 	    </java>
     	</parallel>
     </target>

@@ -10,8 +10,9 @@ import java.util.Random;
 import impl.IGameClient;
 import impl.IGameServer;
 
-public class GameServer implements IGameServer, IGameClient {
+public class GameServer implements IGameServer {
 	private static final int DefaultPlayers = 2;
+	private static IGameClient ClientStub = null;
 	private static int PlayerNum = 0;
 	private static Player PlayerList[];
 	private static int PosX, PosY;
@@ -23,18 +24,24 @@ public class GameServer implements IGameServer, IGameClient {
 
 	public int findNextFreeSlot()
 	{
-		for (int i = 0; i < PlayerNum; i++)
+		for (int i = 0; i < PlayerNum; i++) {
+			if (PlayerList[i] == null)
+				return i;
 			if (PlayerList[i].getName() == null)
 				return i;
+		}
 		// Cannot find FreeSlot
 		return -1;
 	}
 
-	public int findClientIndex(String name)
+	public int findClientIndex(String name) 
 	{
-		for (int i = 0; i < PlayerNum; i++)
-			if (PlayerList[i].getName() == name)
+		for (int i = 0; i < PlayerNum; i++) {
+			if (PlayerList[i] == null)
+				continue;
+			if (PlayerList[i].getName().equals(name))
 				return i;
+		}
 		// Cannot spot the Client
 		return -1;
 	}
@@ -48,7 +55,18 @@ public class GameServer implements IGameServer, IGameClient {
 		if (n < 0) 
 			throw new RemoteException();
 
-		PlayerList[n].setName(playerName);
+		try {
+			// Cases that the first client try to login
+			if (ClientStub == null) {
+				Registry registry = LocateRegistry.getRegistry(null);
+				ClientStub = (IGameClient)registry.lookup("IGameClient");
+			}
+		} catch (Exception e) {
+			System.err.println("Server exception: " + e.toString());
+			e.printStackTrace();
+		}
+
+		PlayerList[n] = new Player(playerName, 0);
 		PlayerList[n].setClient(client);
 	}
 
@@ -60,9 +78,7 @@ public class GameServer implements IGameServer, IGameClient {
 		if (n < 0)
 			throw new RemoteException();
 
-		PlayerList[n].setName(null);
-		PlayerList[n].setScore(0);
-		PlayerList[n].setClient(null);
+		PlayerList[n] = null;
 	}
 
 	public synchronized void huntFly(String playerName) throws RemoteException
@@ -74,24 +90,6 @@ public class GameServer implements IGameServer, IGameClient {
 			throw new RemoteException();
 
 		PlayerList[n].setScore(PlayerList[n].getScore() + 10L);
-	}
-
-	// The following methods are client interfaces
-	public void recieveFlyHunted(String playerName, long newPoints)
-	{
-		int n;
-
-		n = findClientIndex(playerName);
-		if (n < 0)
-			return ;
-
-		newPoints = PlayerList[n].getScore();
-	}
-
-	public void recieveFlyPosition(int x, int y)
-	{
-		x = PosX;
-		y = PosY;
 	}
 
 	public static void main(String args[])
@@ -108,14 +106,14 @@ public class GameServer implements IGameServer, IGameClient {
 
 		try {
 			IGameServer obj = new GameServer();
-			// Export the object
+			// Export the server interface object
 			IGameServer stub = (IGameServer) UnicastRemoteObject.exportObject(obj, 0);
 
 			// Bind the remote object's stub in the registry
-			Registry registry = LocateRegistry.getRegistry();
+			Registry registry = LocateRegistry.getRegistry(null);
 			registry.rebind("IGameServer", stub);
 
-			System.err.println("Server ready");
+			System.out.println("Server ready");
 		} catch (Exception e) {
 			System.err.println("Server exception: " + e.toString());
 			e.printStackTrace();

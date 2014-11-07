@@ -4,6 +4,6 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 
 public interface IGameClient extends Remote{
-	public void recieveFlyHunted(String playerName, long newPoints) throws RemoteException;
-	public void recieveFlyPosition(int x, int y) throws RemoteException;
+	public void receiveFlyHunted(String playerName, long newPoints) throws RemoteException;
+	public void receiveFlyPosition(int x, int y) throws RemoteException;
 }
