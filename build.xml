@@ -44,7 +44,7 @@
 	<!-- 2 seconds delay for the rmiregistry to get ready -->
 	<sleep seconds="2" />
 	<java classname="ServerBuild.GameServer" classpath="${build}"
-		fork="true" spawn="true">
+		>
 	    <sysproperty key="java.rmi.server.codebase"
 		    value="file:${build}"/>
 	</java>
