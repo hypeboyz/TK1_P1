@@ -16,6 +16,7 @@ public class GameServer implements IGameServer {
 	private static int PlayerNum = 0;
 	private static Player PlayerList[];
 	private static int PosX, PosY;
+	private volatile static int FlyLock;
 
 	private GameServer()
 	{
@@ -44,6 +45,13 @@ public class GameServer implements IGameServer {
 		}
 		// Cannot spot the Client
 		return -1;
+	}
+
+	public int getNextPos()
+	{
+		Random randomGenerator = new Random();
+
+		return randomGenerator.nextInt(640 - 32);
 	}
 
 	// The following methods are server interfaces
@@ -84,25 +92,37 @@ public class GameServer implements IGameServer {
 	public synchronized void huntFly(String playerName) throws RemoteException
 	{
 		int n;
+		if (FlyLock != 0) {
+			FlyLock = 0;
+			n = findClientIndex(playerName);
+			if (n < 0)
+				throw new RemoteException();
 
-		n = findClientIndex(playerName);
-		if (n < 0)
-			throw new RemoteException();
-
-		PlayerList[n].setScore(PlayerList[n].getScore() + 10L);
+			PlayerList[n].setScore(PlayerList[n].getScore() + 10L);
+			ClientStub.receiveFlyHunted(playerName, PlayerList[n].getScore());
+			PosX = getNextPos();
+			PosY = getNextPos();
+			ClientStub.receiveFlyPosition(PosX, PosY);
+		} else {
+			ClientStub.receiveFlyPosition(PosX, PosY);
+			FlyLock++;
+		}
 	}
 
 	public static void main(String args[])
 	{
 		int n;
+
+		n = (args.length < 1) ? DefaultPlayers : Integer.parseInt(args[0]);
 		Random randomGenerator = new Random();
 
 		PosX = randomGenerator.nextInt(640 - 32);
 		PosY = randomGenerator.nextInt(640 - 32);
 
-		n = (args.length < 1) ? DefaultPlayers : Integer.parseInt(args[0]);
 		PlayerList = new Player[n];
 		PlayerNum = n;
+
+		FlyLock = 1;
 
 		if (System.getSecurityManager() == null)
 			System.setSecurityManager(new SecurityManager());

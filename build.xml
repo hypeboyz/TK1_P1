@@ -50,6 +50,7 @@
 		value="server.policy"/>
 	</java>
 
+	<!-- 2 seconds delay for the game server to get ready -->
 	<sleep seconds="2" />
     	<parallel>
 	    <!-- start here one server and two clients -->
@@ -59,6 +60,15 @@
 		    value="file:${build}"/>
 		<sysproperty key="java.security.policy"
 		    value="client.policy"/>
+		<arg value="Chen"/>
+	    </java>
+	    <java classname="ClientBuild.GameClient" classpath="${build}" 
+		fork="true">
+		<sysproperty key="java.rmi.server.codebase"
+		    value="file:${build}"/>
+		<sysproperty key="java.security.policy"
+		    value="client.policy"/>
+		<arg value="Yu"/>
 	    </java>
     	</parallel>
     </target>

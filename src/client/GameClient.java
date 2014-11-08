@@ -19,7 +19,7 @@ public class GameClient implements IGameClient{
 	// The following methods are client interfaces
 	public void receiveFlyHunted(String playerName, long newPoints) throws RemoteException
 	{
-		System.out.printf("Name: %s\nScore: %l\n", playerName, newPoints);
+		System.out.printf("Name: %s\nScore: %d\n", playerName, newPoints);
 	}
 	
 	public void receiveFlyPosition(int x, int y) throws RemoteException
@@ -56,8 +56,13 @@ public class GameClient implements IGameClient{
 			registry.rebind("IGameClient", stub);
 			ServerStub = (IGameServer)registry.lookup("IGameServer");
 
-			ServerStub.login("Chen", stub);
-			ServerStub.logout("Chen");
+			// Following codes are used to test remote calls
+			// Remove them once the synchronization is done
+			ServerStub.login(args[0], stub);
+			for (int i = 0; i < 10; i++)
+				ServerStub.huntFly(args[0]);
+
+			ServerStub.logout(args[0]);
 		} catch (Exception e) {
 			System.err.println("Client exception: " + e.toString());
 			e.printStackTrace();
