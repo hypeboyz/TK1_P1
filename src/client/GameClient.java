@@ -44,6 +44,9 @@ public class GameClient implements IGameClient{
 
 	public static void main(String[] args)
 	{
+		if (System.getSecurityManager() == null)
+			System.setSecurityManager(new SecurityManager());
+
 		try {
 			IGameClient obj = new GameClient();
 			// Export the server interface object

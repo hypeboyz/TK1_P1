@@ -104,6 +104,9 @@ public class GameServer implements IGameServer {
 		PlayerList = new Player[n];
 		PlayerNum = n;
 
+		if (System.getSecurityManager() == null)
+			System.setSecurityManager(new SecurityManager());
+
 		try {
 			IGameServer obj = new GameServer();
 			// Export the server interface object

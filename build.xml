@@ -46,6 +46,8 @@
 	<java classname="ServerBuild.GameServer" classpath="${build}">
 	    <sysproperty key="java.rmi.server.codebase"
 		value="file:${build}"/>
+	    <sysproperty key="java.security.policy"
+		value="server.policy"/>
 	</java>
 
 	<sleep seconds="2" />
@@ -55,6 +57,8 @@
 		fork="true">
 		<sysproperty key="java.rmi.server.codebase"
 		    value="file:${build}"/>
+		<sysproperty key="java.security.policy"
+		    value="client.policy"/>
 	    </java>
     	</parallel>
     </target>
