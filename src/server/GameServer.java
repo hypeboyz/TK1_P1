@@ -7,6 +7,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.server.UnicastRemoteObject;
 import java.lang.Integer;
 import java.util.Random;
+import java.util.concurrent.locks.ReentrantLock;
 import impl.IGameClient;
 import impl.IGameServer;
 
@@ -16,7 +17,7 @@ public class GameServer implements IGameServer {
 	private static int PlayerNum = 0;
 	private static Player PlayerList[];
 	private static int PosX, PosY;
-	private volatile static int FlyLock;
+	private volatile static ReentrantLock FlyLock;
 
 	private GameServer()
 	{
@@ -89,11 +90,10 @@ public class GameServer implements IGameServer {
 		PlayerList[n] = null;
 	}
 
-	public synchronized void huntFly(String playerName) throws RemoteException
+	public void huntFly(String playerName) throws RemoteException
 	{
-		int n;
-		if (FlyLock != 0) {
-			FlyLock = 0;
+		if (FlyLock.tryLock()) {
+			int n;
 			n = findClientIndex(playerName);
 			if (n < 0)
 				throw new RemoteException();
@@ -102,10 +102,10 @@ public class GameServer implements IGameServer {
 			ClientStub.receiveFlyHunted(playerName, PlayerList[n].getScore());
 			PosX = getNextPos();
 			PosY = getNextPos();
-			ClientStub.receiveFlyPosition(PosX, PosY);
-		} else {
-			ClientStub.receiveFlyPosition(PosX, PosY);
-			FlyLock++;
+			for (int i = 0; i < PlayerNum; i++)
+				if ((PlayerList[i] != null))
+					PlayerList[i].getClient().receiveFlyPosition(PosX, PosY);
+			FlyLock.unlock();
 		}
 	}
 
@@ -122,7 +122,7 @@ public class GameServer implements IGameServer {
 		PlayerList = new Player[n];
 		PlayerNum = n;
 
-		FlyLock = 1;
+		FlyLock = new ReentrantLock();
 
 		if (System.getSecurityManager() == null)
 			System.setSecurityManager(new SecurityManager());

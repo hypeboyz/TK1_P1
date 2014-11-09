@@ -11,6 +11,8 @@ import impl.IGameServer;
 public class GameClient implements IGameClient{
 	private final static int width = 640, height = 640;
 	private static IGameServer ServerStub;
+	// Better keep the palyer name
+	private static String PlayerName;
 	private GameClient()
 	{
 		super();
@@ -19,12 +21,12 @@ public class GameClient implements IGameClient{
 	// The following methods are client interfaces
 	public void receiveFlyHunted(String playerName, long newPoints) throws RemoteException
 	{
-		System.out.printf("Name: %s\nScore: %d\n", playerName, newPoints);
+		System.out.printf("Name: %s\tScore: %d\n", playerName, newPoints);
 	}
 	
 	public void receiveFlyPosition(int x, int y) throws RemoteException
 	{
-		System.out.printf("x: %d\ny: %d\n", x, y);
+		System.out.printf("Name: %s\tx: %d\ty: %d\n", PlayerName, x, y);
 	}
 
 	private static void createAndShowGUI()
@@ -58,9 +60,12 @@ public class GameClient implements IGameClient{
 
 			// Following codes are used to test remote calls
 			// Remove them once the synchronization is done
+			PlayerName = args[0];
 			ServerStub.login(args[0], stub);
-			for (int i = 0; i < 10; i++)
+			for (int i = 0; i < 10; i++) {
+				Thread.sleep(800);
 				ServerStub.huntFly(args[0]);
+			}
 
 			ServerStub.logout(args[0]);
 		} catch (Exception e) {
